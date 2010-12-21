@@ -31,8 +31,17 @@ Find.find(Dir.pwd) do |file|
           lines = line.split(':')
           lines.shift
           puts lines.join.chomp[1..-1]
-
-          end
+#---------lines---------
+        elsif line.starts_with?('Organization')
+          organization = line.split(':')
+          organization.shift
+          puts organization.join.chomp[1..-1]
+#---------organization---------
+       else
+        message = []
+        message << line
+        puts message.join
+       end
         }
   end
 
