@@ -10,14 +10,27 @@ class String
 end
 
 def files_analysis
+
 Find.find(Dir.pwd) do |file|
   if !File.directory?(file)
     f = File.open(file, "r")
     puts f.path
       f.each_line {|line|
         if line.starts_with?('From')
-            address = line.split(':')
-            puts address[1].to_s
+          address = line.split(':')
+          address.shift
+          puts address.join.chomp[1..-1]
+#---------address---------
+
+        elsif line.starts_with?('Subject')
+          subject = line.split(':')
+          subject.shift
+          puts subject.join.chomp[1..-1]
+#---------subject---------
+        elsif line.starts_with?('Lines')
+          lines = line.split(':')
+          lines.shift
+          puts lines.join.chomp[1..-1]
 
           end
         }
@@ -25,8 +38,7 @@ Find.find(Dir.pwd) do |file|
 
 end
 
-end # for def
-
+end
 categories = Dir.glob("**/").each {|x| x.chop!} #list of categories
 
 Dir.chdir('test')
