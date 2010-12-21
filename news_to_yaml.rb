@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'yaml'
+require 'find'
 
 class String
   def starts_with?(prefix)
@@ -8,28 +9,24 @@ class String
   end
 end
 
-email, name = Array.new
+
 
 Dir.chdir('test')
 categories = Dir.glob("**/").each {|x| x.chop!} #list of categories
-Dir.glob("**/").each do |entry|
-    Dir.chdir(entry)
-    puts Dir.pwd
-    Dir.entries(Dir.pwd).each {|file|
-         #open every file in directory
 
-        f = File.open(file, "r") unless !File.directory?(file)
-        f.each_line {|line|
-        puts line
-          if line.starts_with?('from')
-            line.split
+Find.find(Dir.pwd) do |file|
+  if !File.directory?(file)
+    f = File.open(file, "r")
+    puts f.path
+      f.each_line {|line|
+        if line.starts_with?('From')
+            address = line.split(':')
+            puts address[1].to_s
 
-
-        end
-        }}
-
-      end
+          end
+        }
   end
+
   Dir.chdir('..')
 end
 Dir.chdir('..')
