@@ -9,11 +9,7 @@ class String
   end
 end
 
-
-
-Dir.chdir('test')
-categories = Dir.glob("**/").each {|x| x.chop!} #list of categories
-
+def files_analysis
 Find.find(Dir.pwd) do |file|
   if !File.directory?(file)
     f = File.open(file, "r")
@@ -27,10 +23,21 @@ Find.find(Dir.pwd) do |file|
         }
   end
 
-  Dir.chdir('..')
 end
+
+end # for def
+
+categories = Dir.glob("**/").each {|x| x.chop!} #list of categories
+
+Dir.chdir('test')
+
+files_analysis
+
 Dir.chdir('..')
 
-
 Dir.chdir('train')
+
+files_analysis
+
+Dir.chdir('..')
 
