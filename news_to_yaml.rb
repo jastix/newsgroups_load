@@ -27,7 +27,6 @@ message = []
           address.shift
           puts address.join.chomp[1..-1]
           @addresses << {"from" => "#{address.join.chomp[1..-1]}" }
-
 #---------address---------
 
         elsif line.starts_with?('Subject')
@@ -36,22 +35,16 @@ message = []
           puts subject.join.chomp[1..-1]
           @subjects << {"title" => "#{subject.join.chomp[1..-1]}"}
 #---------subject---------
-        elsif line.starts_with?('Lines')
-          lines = line.split(':')
-          lines.shift
-          puts lines.join.chomp[1..-1]
-          @lines_array << {"lines" => "#{lines.join.chomp[1..-1]}"}
-#---------lines---------
+
         elsif line.starts_with?('Organization')
           organization = line.split(':')
           organization.shift
+
           puts organization.join.chomp[1..-1]
           @organizations << {"title" => "#{organization.join.chomp[1..-1]}"}
 #---------organization---------
         else
-
           message << line.chomp
-          message.to_yaml
           @messages << {"message" => "#{message.join}"} if f.eof?
        end
 
@@ -59,18 +52,17 @@ message = []
 
   end
 
-
-
-
 end
 
-#puts subjects
-
-
-
-
 end #-- def --
-categories = Dir.glob("**/").each {|x| x.chop!} #list of categories
+
+#------categories--------------
+@categories = []
+
+cat = Dir.glob("**/").each {|x| x.chop! } #list of categories
+cat.delete('train') if cat.include?('train')
+cat.delete('test') if cat.include?('test')
+cat.each {|tit| @categories << {"title" => "#{tit.split('/')[1]}"}}
 
 Dir.chdir('test')
 
@@ -90,6 +82,7 @@ puts "-------------"
   @organizations.uniq!
   @lines_array.uniq!
   #@messages.uniq!
+  @categories.uniq!
 
 File.open('address.yml', 'w') do |out|
     addr = {"addresses" => @addresses}
@@ -107,13 +100,14 @@ File.open('organizations.yml', 'w') do |out|
     out.write(org.to_yaml)
   end
 
-File.open('lines_array.yml', 'w') do |out|
-    la = {"lines_array" => @lines_array}
-    out.write(la.to_yaml)
-  end
 
 File.open('messages.yml', 'w') do |out|
     mes = {"messages" => @messages}
-    out.write(mes.ya2yaml)
+    out.write(mes.to_yaml)
+  end
+
+File.open('categories.yml', 'w') do |out|
+    cat = {"categories" => @categories}
+    out.write(cat.to_yaml)
   end
 
