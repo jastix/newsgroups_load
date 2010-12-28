@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'yaml'
 require 'find'
-require 'ya2yaml'
+
 
 class String
   def starts_with?(prefix)
@@ -10,42 +10,85 @@ class String
   end
 end
 
-def files_analysis
+
+
+#def files_analysis (train)
+
 @addresses = []
 @subjects = []
 @lines_array = []
 @organizations = []
 @messages  = []
+
+Dir.chdir('test')
+train = 0
+
 Find.find(Dir.pwd) do |file|
   if !File.directory?(file)
     f = File.open(file, "r")
     puts f.path
+
 message = []
       f.each_line {|line|
         if line.starts_with?('From')
           address = line.split(':')
           address.shift
-          puts address.join.chomp[1..-1]
-          @addresses << {"from" => "#{address.join.chomp[1..-1]}" }
+          @addr = address.join.chomp[1..-1]
+
+          if @addr == nil
+            @addr = 'unknown'
+          else @addr.include?('""')
+            @addr.delete!('""')
+          end
+          if @addr.match(/[a-zA-Z]/) == nil
+            @addr = 'unknown'
+
+          end
+
 #---------address---------
 
         elsif line.starts_with?('Subject')
           subject = line.split(':')
           subject.shift
-          puts subject.join.chomp[1..-1]
-          @subjects << {"title" => "#{subject.join.chomp[1..-1]}"}
+          @subj = subject.join.chomp[1..-1]
+
+          if @subj == nil
+            @subj = 'unknown'
+          else @subj.include?('""')
+            @subj.delete!('""')
+          end
+          if @subj.match(/[a-zA-Z]/) == nil
+            @subj = 'unknown'
+
+          end
+
+          @subjects << {"title" => "#{@subj}"}
 #---------subject---------
 
         elsif line.starts_with?('Organization')
           organization = line.split(':')
           organization.shift
+          org = organization.join.chomp[1..-1]
 
-          puts organization.join.chomp[1..-1]
-          @organizations << {"title" => "#{organization.join.chomp[1..-1]}"}
+          if org == nil
+            org = 'unknown'
+          else org.include?('""')
+            org.delete!('""')
+          end
+          if org.length < 3
+            org = 'unknown'
+          end
+          if org.match(/[a-zA-Z]/) == nil
+            org = 'unknown'
+
+          end
+          @organizations << {"title" => "#{org}"}
 #---------organization---------
+          @addresses << {"from" => "#{@addr}", "organization" => "#{org}"}
         else
+        puts train
           message << line.chomp
-          @messages << {"message" => "#{message.join}"} if f.eof?
+          @messages << {"body" => "#{message.join}", "train" => train, "address" => @addr, "category" => f.path.split('/').to_a[6], "subject" => @subj} if f.eof?
        end
 
         }
@@ -54,8 +97,86 @@ message = []
 
 end
 
-end #-- def --
+#end #-- def --
 
+Dir.chdir('..')
+
+Dir.chdir('train')
+train = 1
+
+Find.find(Dir.pwd) do |file|
+  if !File.directory?(file)
+    f = File.open(file, "r")
+    puts f.path
+
+message = []
+      f.each_line {|line|
+        if line.starts_with?('From')
+          address = line.split(':')
+          address.shift
+          @addr = address.join.chomp[1..-1]
+
+          if @addr == nil
+            @addr = 'unknown'
+          else @addr.include?('""')
+            @addr.delete!('""')
+          end
+          if @addr.match(/[a-zA-Z]/) == nil
+            @addr = 'unknown'
+
+          end
+
+#---------address---------
+
+        elsif line.starts_with?('Subject')
+          subject = line.split(':')
+          subject.shift
+          @subj = subject.join.chomp[1..-1]
+
+          if @subj == nil
+            @subj = 'unknown'
+          else @subj.include?('""')
+            @subj.delete!('""')
+          end
+          if @subj.match(/[a-zA-Z]/) == nil
+            @subj = 'unknown'
+
+          end
+
+          @subjects << {"title" => "#{@subj}"}
+#---------subject---------
+
+        elsif line.starts_with?('Organization')
+          organization = line.split(':')
+          organization.shift
+          org = organization.join.chomp[1..-1]
+
+          if org == nil
+            org = 'unknown'
+          else org.include?('""')
+            org.delete!('""')
+          end
+          if org.length < 3
+            org = 'unknown'
+          end
+          if org.match(/[a-zA-Z]/) == nil
+            org = 'unknown'
+
+          end
+          @organizations << {"title" => "#{org}"}
+#---------organization---------
+          @addresses << {"from" => "#{@addr}", "organization" => "#{org}"}
+        else
+        puts train
+          message << line.chomp
+          @messages << {"body" => "#{message.join}", "train" => train, "address" => @addr, "category" => f.path.split('/').to_a[6], "subject" => @subj} if f.eof?
+       end
+
+        }
+
+  end
+
+end
 #------categories--------------
 @categories = []
 
@@ -64,15 +185,12 @@ cat.delete('train') if cat.include?('train')
 cat.delete('test') if cat.include?('test')
 cat.each {|tit| @categories << {"title" => "#{tit.split('/')[1]}"}}
 
-Dir.chdir('test')
 
-files_analysis
 
-Dir.chdir('..')
 
-Dir.chdir('train')
 
-files_analysis
+
+
 
 Dir.chdir('..')
 puts "-------------"
@@ -81,7 +199,7 @@ puts "-------------"
   @subjects.uniq!
   @organizations.uniq!
   @lines_array.uniq!
-  #@messages.uniq!
+ puts @messages.length.to_s
   @categories.uniq!
 
 File.open('address.yml', 'w') do |out|
