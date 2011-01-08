@@ -31,7 +31,7 @@ Find.find(Dir.pwd) do |file|
   if !File.directory?(file)
     f = File.open(file, "r")
     puts f.path
-
+@organ = 0
 message = []
       f.each_line {|line|
         if line.starts_with?('From')
@@ -48,7 +48,7 @@ message = []
             @addr = 'unknown'
 
           end
-
+puts @addr
 #---------address---------
 
         elsif line.starts_with?('Subject')
@@ -70,29 +70,38 @@ message = []
 #---------subject---------
 
         elsif line.starts_with?('Organization')
+          @organ = 1
           organization = line.split(':')
           organization.shift
-          org = organization.join.chomp[1..-1]
+          @org = organization.join.chomp[1..-1]
 
-          if org == nil
-            org = 'unknown'
-          else org.include?('""')
-            org.delete!('""')
+          if @org == nil
+            @org = 'unknown'
+          else @org.include?('""')
+            @org.delete!('""')
           end
-          if org.length < 3
-            org = 'unknown'
+          if @org.length < 3
+            @org = 'unknown'
           end
-          if org.match(/[a-zA-Z]/) == nil
-            org = 'unknown'
+          if @org.match(/[a-zA-Z]/) == nil
+            @org = 'unknown'
+          end
 
-          end
-          @organizations << {"title" => "#{org}"}
+          @organizations << {"title" => "#{@org}"}
 #---------organization---------
-          @addresses << {"from" => "#{@addr}", "organization" => "#{org}"}
+        @addresses << {"from" => "#{@addr}", "organization" => "#{@org}"}
+
         else
-        #puts train
+
+
           message << line.chomp
-          @messages << {"body" => "#{message.join}", "train" => train, "address" => @addr, "category" => f.path.split('/').to_a[6], "subject" => @subj} if f.eof?
+          if f.eof?
+            if @organ == 0
+           @addresses << {"from" => "#{@addr}", "organization" => "unknown"}
+
+        end
+          @messages << {"body" => "#{message.join}", "train" => train, "address" => @addr, "category" => f.path.split('/').to_a[6], "subject" => @subj}
+        end
        end
 
         }
